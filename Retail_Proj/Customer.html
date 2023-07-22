@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>POS Screen</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body style="background-color: #414141;">
+  <div>
+    <h1 style="color: ghostwhite;">
+      <img src="img/NCRLogo.png" alt="NCRLogo"> Smart Recommendations
+    </h1>
+  </div>
+  <div class="sellables-container">
+    <div class="sellables">
+      <div class="item-group-wrapper">
+        <div class="item-group">
+          <div class="item" onclick="addItem('yogurt', 8.99)">Yogurt<br>$8.99</div>
+          <div class="item" onclick="addItem('packaged cheese', 5.99)">Packaged cheese<br>$5.99</div>
+          <div class="item" onclick="addItem('frozen breakfast', 8.49)">Frozen breakfast<br>$8.49</div>
+          <div class="item" onclick="addItem('milk', 2.99)">Milk<br>$2.99</div>
+          <div class="item" onclick="addItem('soft drinks', 5.99)">Soft drinks<br>$5.99</div>
+          <div class="item" onclick="addItem('dry pasta', 8.49)">Dry Pasta<br>$8.49</div>
+          <div class="item" onclick="addItem('frozen juice', 2.99)">Frozen juice<br>$2.99</div>
+          <div class="item" onclick="addItem('white wines', 5.99)">White wines<br>$5.99</div>
+          <div class="item" onclick="addItem('frozen pizza', 8.49)">Frozen pizza<br>$8.49</div>
+          <div class="item" onclick="addItem('fresh fruits', 7.99)">Fresh fruits<br>$7.99</div>
+          <div class="item" onclick="addItem('fresh vegetables', 5.99)">Fresh vegetables<br>$5.99</div>
+          <div class="item" onclick="addItem('juice nectars', 8.49)">Juice nectars<br>$8.49</div>
+          <div class="item" onclick="addItem('diapers wipes', 1.99)">Diapers wipes<br>$1.99</div>
+          <div class="item" onclick="addItem('coffee', 5.99)">Coffee<br>$5.99</div>
+          <div class="item" onclick="addItem('bread', 8.49)">Bread<br>$8.49</div>
+          <div class="item" onclick="addItem('tea', 8.49)">Tea<br>$8.49</div>
+        </div>
+      </div>
+      <div class ="item-group">
+        <div class ="recommendationBox">
+          <div class="recommendation" id="recommendation">
+            <h2 style="margin:10px;">Recommendations</h2>
+            <!--<p id="recommendation-text" style="margin:10px;"></p>-->
+            <div id="recommendations-text" style = "overflow-y: scroll; max-height: 250px;"></div>
+          </div>
+        </div>
+        <div class ="DiscountsBox" >
+          <div class="recommendation" id="recommendation">
+            <h2 style="margin:10px;">Discounts</h2>
+            <!--<p id="recommendation-text" style="margin:10px;"></p>-->
+            <div id="discounts-text" style = "overflow-y: scroll; max-height: 250px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="register-wrapper">
+      <div class="customer">
+        <input type="text" placeholder="Welcome User" />
+      </div>
+  
+      <div class="register">
+        <div class="products" id="receipt">
+          <!-- Receipt items will be added here -->
+        </div>
+        <div id="total" style="display: flex; align-items: center; justify-content: center; font-weight: 700;">
+        </div>
+        <div class="pay-button">
+          <div style="padding:10px;" class="item-SaveFile" onclick="createAndSaveFile()">Show Recommendations</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let items = [];
+    let total = 0;
+    let dataArray = [];
+    let discountsArray = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedUser = urlParams.get('username');
+
+    function setUserName() {
+      const userInputElement = document.querySelector('input[type="text"]');
+      if (selectedUser) {
+        userInputElement.value = `Welcome ${selectedUser}`;
+      } else {
+        userInputElement.value = 'Welcome User';
+      }
+      if (selectedUser === 'Loyalty User') {
+        addItem('packaged seafood', 8.99);
+        addItem('soft drinks', 8.49);
+      }
+    }
+    window.addEventListener('load', setUserName);
+
+    function addItem(name, price) {
+      items.push({ name, price });
+      total += price;
+      updateReceipt();
+    }
+
+    function deleteItem(event, index) {
+      event.stopPropagation(); // Prevents the addItem function from being triggered
+      const deletedItem = items.splice(index, 1)[0];
+      total -= deletedItem.price;
+      updateReceipt();
+    }
+
+    function displayRecommendation() {
+    // Replace "recommendation.txt" with the path to your recommendation file.
+      fetch("recommendations.txt")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
+        .then(textData => {
+          // Split the text into an array using commas as the separator
+          dataArray.push(...textData.split(','));
+
+          // Create a new div to hold the product bars
+          const productBarContainer =  document.getElementById('recommendations-text');;
+          productBarContainer.innerText = '';
+
+          // Loop through the dataArray and create a span for each value
+          dataArray.forEach(value => {
+            const spanElement = document.createElement('span');
+            spanElement.className = 'recommendation-bar';
+            spanElement.textContent = value;
+            productBarContainer.appendChild(spanElement);
+          });
+
+          // Append the productBarContainer to the body or any desired element in the DOM
+          //document.body.appendChild(productBarContainer);
+      })
+      .catch(error => {
+        console.error('Error while reading the file:', error);
+      });
+        
+    }
+
+  // Call the displayRecommendation function when the page loads
+    window.addEventListener('load', displayRecommendation);
+
+    function displayDiscounts() {
+    // Replace "Discounts.txt" with the path to your recommendation file.
+      fetch("Discounts.txt")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
+        .then(textData => {
+          // Split the text into an array using commas as the separator
+          discountsArray.push(...textData.split(','));
+
+          // Create a new div to hold the product bars
+          const productBarContainer =  document.getElementById('discounts-text');;
+          productBarContainer.innerText = '';
+
+          // Loop through the discountsArray and create a span for each value
+          discountsArray.forEach(value => {
+            const spanElement = document.createElement('span');
+            spanElement.className = 'recommendation-bar';
+            spanElement.textContent = value;
+            productBarContainer.appendChild(spanElement);
+          });
+      })
+      .catch(error => {
+        console.error('Error while reading the file:', error);
+      });
+        
+    }
+
+  // Call the displayDiscounts function when the page loads
+    window.addEventListener('load', displayDiscounts);
+
+    function updateReceipt() {
+      const receipt = document.getElementById('receipt');
+    receipt.innerHTML = ''; // Clear previous items
+
+    // Create the product-bar for each item and append it to the receipt
+    items.forEach((item, index) => { // Add 'index' parameter
+      const productBar = document.createElement('div');
+      productBar.classList.add('product-bar');
+
+      const itemName = document.createElement('span');
+      itemName.style.width = "50px";
+      itemName.innerText = item.name;
+
+      const price = document.createElement('span');
+      price.innerText = `$${item.price.toFixed(2)}`;
+
+      const deleteButton = document.createElement('span'); // Add delete button
+      deleteButton.innerText = 'Delete';
+      deleteButton.style.height = '12px';
+      deleteButton.classList.add('delete-button');
+      deleteButton.addEventListener('click', (event) => deleteItem(event, index)); // Call 'deleteItem' function on click
+
+      productBar.appendChild(itemName);
+      productBar.appendChild(price);
+      productBar.appendChild(deleteButton); // Append the delete button to the product bar
+      receipt.appendChild(productBar);
+    });
+
+      const totalSpan = document.getElementById('total');
+      totalSpan.innerText = `Total: $${total.toFixed(2)}`;
+
+      // Scroll to the bottom of the receipt to show the latest item added
+      receipt.scrollTop = receipt.scrollHeight;
+    }
+    
+    function createAndSaveFile() {
+
+      const discountsBox = document.querySelector(".DiscountsBox");
+      discountsBox.style.visibility = "visible";
+      /*if (discountsBox.style.visibility === "hidden") {
+        discountsBox.style.visibility = "visible";
+      } 
+      else {
+        discountsBox.style.visibility = "hidden";
+      }*/
+      //const recommendationBox = document.getElementById('recommendation-text');
+      const itemNames = items.map(item => item.name);
+    // Join the item names with commas
+      const recommendationText = itemNames.join(', ');
+      // Create a new Blob with the recommendation text
+      const blob = new Blob([recommendationText], { type: 'text/plain' });
+      // Create a new anchor element to trigger the download
+      const anchor = document.createElement('a');
+      anchor.download = 'Output.txt'; // File name
+      anchor.href = URL.createObjectURL(blob); // Blob URL
+      anchor.click();
+      
+      // Clean up the URL created for the blob
+      URL.revokeObjectURL(anchor.href);
+    }
+    
+    function BackToHome()
+    {
+      window.location.href = "index.html";
+    }
+</script>
+</body>
+</html>
